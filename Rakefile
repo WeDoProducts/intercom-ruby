@@ -21,9 +21,9 @@ task :spec => "spec:unit"
 task :default => :spec
 
 task :console do
-  require 'irb'
-  require 'irb/completion'
-  require 'intercom' # You know what to do.
+  require 'pry'
+  require 'intercom'
   ARGV.clear
-  IRB.start
+  Pry.start
+end
 end

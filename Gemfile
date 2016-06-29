@@ -3,6 +3,7 @@ source "https://rubygems.org"
 gemspec
 
 group :development, :test do
+  gem 'pry'
   platforms :jruby do
     gem 'json-jruby'
     gem 'jruby-openssl'

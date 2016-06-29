@@ -54,7 +54,7 @@ module Intercom
     end
 
     def paging_info_present?(response_hash)
-      !!(response_hash['pages'] && response_hash['pages']['type'])
+      !!(response_hash['pages'])
     end
 
     def extract_next_link(response_hash)
