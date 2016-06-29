@@ -8,6 +8,7 @@ module Intercom
         raise BadRequestError, "#find takes a hash as its parameter but you supplied #{params.inspect}" unless params.is_a? Hash
         collection_name = Utils.resource_class_to_collection_name(collection_class)
         finder_details = {}
+        
         if params[:id] && !type_switched_finder?(params)
           finder_details[:url] = "/#{collection_name}/#{params[:id]}"
           finder_details[:params] = {}
@@ -15,6 +16,8 @@ module Intercom
           finder_details[:url] = "/#{collection_name}"
           finder_details[:params] = params
         end
+        finder_details[:params].merge!({type: :user}) if collection_name == 'events'
+
         ClientCollectionProxy.new(collection_name, finder_details: finder_details,  client: @client)
       end
 
