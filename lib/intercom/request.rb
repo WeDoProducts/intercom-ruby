@@ -129,9 +129,11 @@ module Intercom
       error_details = error_list_details['errors'].first
       error_code = error_details['type'] || error_details['code']
       parsed_http_code = (http_code > 0 ? http_code : nil)
+      request_id = error_list_details['request_id']
       error_context = {
         :http_code => parsed_http_code,
-        :application_error_code => error_code
+        :application_error_code => error_code,
+        :request_id => request_id
       }
       case error_code
       when 'unauthorized', 'forbidden'
@@ -147,18 +149,18 @@ module Intercom
       when 'conflict', 'unique_user_constraint'
         raise Intercom::MultipleMatchingUsersError.new(error_details['message'], error_context)
       when nil, ''
-        raise Intercom::UnexpectedError.new(message_for_unexpected_error_without_type(error_details, parsed_http_code), error_context)
+        raise Intercom::UnexpectedError.new(message_for_unexpected_error_without_type(error_details, parsed_http_code, request_id), error_context)
       else
-        raise Intercom::UnexpectedError.new(message_for_unexpected_error_with_type(error_details, parsed_http_code), error_context)
+        raise Intercom::UnexpectedError.new(message_for_unexpected_error_with_type(error_details, parsed_http_code, request_id), error_context)
       end
     end
 
-    def message_for_unexpected_error_with_type(error_details, parsed_http_code)
-      "The error of type '#{error_details['type']}' is not recognized. It occurred with the message: #{error_details['message']} and http_code: '#{parsed_http_code}'. Please contact Intercom with these details."
+    def message_for_unexpected_error_with_type(error_details, parsed_http_code, request_id)
+      "The error of type '#{error_details['type']}' is not recognized. It occurred with the message: #{error_details['message']} and http_code: '#{parsed_http_code} and request_id: '#{request_id}'. Please contact Intercom with these details."
     end
 
-    def message_for_unexpected_error_without_type(error_details, parsed_http_code)
-      "An unexpected error occured. It occurred with the message: #{error_details['message']} and http_code: '#{parsed_http_code}'. Please contact Intercom with these details."
+    def message_for_unexpected_error_without_type(error_details, parsed_http_code, request_id)
+      "An unexpected error occured. It occurred with the message: #{error_details['message']} and http_code: '#{parsed_http_code}' and request_id: '#{request_id}'. Please contact Intercom with these details."
     end
 
     def self.append_query_string_to_url(url, params)
