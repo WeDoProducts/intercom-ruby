@@ -67,7 +67,7 @@ module Intercom
       end
 
       def set_property(attribute, value)
-        if typed_value?(value) && !custom_attribute_field?(attribute) && !message_from_field?(attribute, value) && !message_to_field?(attribute, value)
+        if attribute != 'metadata' && typed_value?(value) && !custom_attribute_field?(attribute) && !message_from_field?(attribute, value) && !message_to_field?(attribute, value)
           value_to_set = Intercom::Lib::TypedJsonDeserializer.new(value).deserialize
         elsif flat_store_attribute?(attribute)
           value_to_set = Intercom::Lib::FlatStore.new(value)

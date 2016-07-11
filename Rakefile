@@ -26,4 +26,3 @@ task :console do
   ARGV.clear
   Pry.start
 end
-end
