@@ -15,10 +15,10 @@ module Intercom
     end
 
     def each(&block)
-      next_page = nil
+      @next_page = nil
       loop do
-        if next_page
-          response_hash = @client.get(next_page, {})
+        if @next_page
+          response_hash = @client.get(@next_page, {})
         else
           response_hash = @client.get(@finder_url, @finder_params)
         end
