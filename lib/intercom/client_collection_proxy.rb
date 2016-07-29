@@ -7,11 +7,11 @@ module Intercom
     attr_reader :resource_name, :finder_url, :resource_class
 
     def initialize(resource_name, finder_details: {}, client:)
-      @resource_name = resource_name
+      @resource_name  = resource_name
       @resource_class = Utils.constantize_resource_name(resource_name)
-      @finder_url = (finder_details[:url] || "/#{@resource_name}")
-      @finder_params = (finder_details[:params] || {})
-      @client = client
+      @finder_url     = (finder_details[:url] || "/#{@resource_name}")
+      @finder_params  = (finder_details[:params] || {})
+      @client         = client
     end
 
     def each(&block)
@@ -23,10 +23,11 @@ module Intercom
           response_hash = @client.get(@finder_url, @finder_params)
         end
         raise Intercom::HttpError.new('Http Error - No response entity returned') unless response_hash
+        @next_page = extract_next_link(response_hash)
         deserialize_response_hash(response_hash, block)
-        next_page = extract_next_link(response_hash)
-        break if next_page.nil?
+        break if last_page?
       end
+
       self
     end
 
@@ -35,6 +36,10 @@ module Intercom
         return item if index == target_index
       end
       nil
+    end
+
+    def last_page?
+      @next_page.nil?
     end
 
     include Enumerable
