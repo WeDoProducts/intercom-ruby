@@ -2,6 +2,9 @@ require 'intercom/client_collection_proxy'
 
 module Intercom
   class ClientScrollCollectionProxy < Intercom::ClientCollectionProxy
+
+    attr_accessor :finder_params
+
     def each(&block)
       loop do
         response_hash = @client.get(@finder_url, @finder_params)
