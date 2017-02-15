@@ -2,6 +2,7 @@ require 'intercom/service/base_service'
 require 'intercom/api_operations/list'
 require 'intercom/api_operations/find'
 require 'intercom/api_operations/find_all'
+require 'intercom/api_operations/scroll'
 require 'intercom/api_operations/save'
 require 'intercom/api_operations/load'
 require 'intercom/extended_api_operations/users'
@@ -13,6 +14,7 @@ module Intercom
     class Company < BaseService
       include ApiOperations::Find
       include ApiOperations::FindAll
+      include ApiOperations::Scroll
       include ApiOperations::Load
       include ApiOperations::List
       include ApiOperations::Save
