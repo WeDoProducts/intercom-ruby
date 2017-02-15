@@ -41,6 +41,9 @@ module Intercom
   # Raised when multiple users match the query (typically duplicate email addresses)
   class MultipleMatchingUsersError < IntercomError; end
 
+  # Raised when a scroll already exists for the app
+  class ScrollExistsError < IntercomError; end
+
   # Raised when you try to call a non-setter method that does not exist on an object
   class Intercom::AttributeNotSetError < IntercomError ; end
 
