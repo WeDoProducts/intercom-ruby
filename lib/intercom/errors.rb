@@ -7,7 +7,7 @@ module Intercom
     def initialize(message, context = {})
       @message                = message
       @http_code              = context[:http_code]
-      @application_error_code = context[:error_code]
+      @application_error_code = context[:application_error_code]
       @request_id             = context[:request_id]
       super(formatted_message)
     end

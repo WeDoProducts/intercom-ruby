@@ -72,7 +72,7 @@ module Intercom
             parsed_body
           rescue Intercom::RateLimitExceeded
             amount_to_sleep = if @rate_limit_details[:reset_at].present?
-                                @rate_limit_details[:reset_at] - Time.now.to_i
+                                @rate_limit_details[:reset_at] - Time.now
                               else
                                 10 - Time.now.sec
                               end
