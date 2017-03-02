@@ -6,7 +6,7 @@ module Intercom
     attr_accessor :path, :net_http_method, :rate_limit_details
 
     def initialize(path, net_http_method)
-      self.path = path
+      self.path            = path
       self.net_http_method = net_http_method
     end
 
@@ -35,29 +35,29 @@ module Intercom
     end
 
     def self.method_with_body(http_method, path, params)
-      request = http_method.send(:new, path, default_headers)
-      request.body = params.to_json
+      request                 = http_method.send(:new, path, default_headers)
+      request.body            = params.to_json
       request["Content-Type"] = "application/json"
       request
     end
 
     def self.default_headers
-      {'Accept-Encoding' => 'gzip, deflate', 'Accept' => 'application/vnd.intercom.3+json', 'User-Agent' => "Intercom-Ruby/#{Intercom::VERSION}"}
+      { 'Accept-Encoding' => 'gzip, deflate', 'Accept' => 'application/vnd.intercom.3+json', 'User-Agent' => "Intercom-Ruby/#{Intercom::VERSION}" }
     end
 
     def client(uri)
       net = Net::HTTP.new(uri.host, uri.port)
       if uri.is_a?(URI::HTTPS)
-        net.use_ssl = true
+        net.use_ssl     = true
         net.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        net.ca_file = File.join(File.dirname(__FILE__), '../data/cacert.pem')
+        net.ca_file     = File.join(File.dirname(__FILE__), '../data/cacert.pem')
       end
       net.read_timeout = 90
       net.open_timeout = 30
       net
     end
 
-    def execute(target_base_url=nil, username:, secret: nil)
+    def execute(target_base_url = nil, username:, secret: nil)
       base_uri = URI.parse(target_base_url)
       set_common_headers(net_http_method, base_uri)
       set_basic_auth(net_http_method, username, secret)
@@ -67,18 +67,23 @@ module Intercom
             response = http.request(net_http_method)
             set_rate_limit_details(response)
             decoded_body = decode_body(response)
-            parsed_body = parse_body(decoded_body, response)
+            parsed_body  = parse_body(decoded_body, response)
             raise_errors_on_failure(response)
             parsed_body
           rescue Intercom::RateLimitExceeded
-            sleep(60 - Time.now.sec)
+            amount_to_sleep = if @rate_limit_details[:reset_at].present?
+                                @rate_limit_details[:reset_at] - Time.now.to_i
+                              else
+                                10 - Time.now.sec
+                              end
+            sleep(amount_to_sleep)
             retry
           rescue Timeout::Error
-            raise Intercom::ServiceUnavailableError.new('Service Unavailable [request timed out]')
+            raise Intercom::ServiceUnavailableError, 'Service Unavailable [request timed out]'
           end
         end
       rescue Timeout::Error
-        raise Intercom::ServiceConnectionError.new('Failed to connect to service [connection attempt timed out]')
+        raise Intercom::ServiceConnectionError, 'Failed to connect to service [connection attempt timed out]'
       end
     end
 
@@ -99,11 +104,11 @@ module Intercom
     end
 
     def set_rate_limit_details(response)
-      rate_limit_details = {}
-      rate_limit_details[:limit] = response['X-RateLimit-Limit'].to_i if response['X-RateLimit-Limit']
+      rate_limit_details             = {}
+      rate_limit_details[:limit]     = response['X-RateLimit-Limit'].to_i if response['X-RateLimit-Limit']
       rate_limit_details[:remaining] = response['X-RateLimit-Remaining'].to_i if response['X-RateLimit-Remaining']
-      rate_limit_details[:reset_at] = Time.at(response['X-RateLimit-Reset'].to_i) if response['X-RateLimit-Reset']
-      @rate_limit_details = rate_limit_details
+      rate_limit_details[:reset_at]  = Time.at(response['X-RateLimit-Reset'].to_i) if response['X-RateLimit-Reset']
+      @rate_limit_details            = rate_limit_details
     end
 
     def decode(content_encoding, body)
@@ -112,31 +117,32 @@ module Intercom
     end
 
     def raise_errors_on_failure(res)
-      if res.code.to_i.eql?(404)
-        raise Intercom::ResourceNotFound.new('Resource Not Found')
-      elsif res.code.to_i.eql?(401)
-        raise Intercom::AuthenticationError.new('Unauthorized')
-      elsif res.code.to_i.eql?(403)
-        raise Intercom::AuthenticationError.new('Forbidden')
-      elsif res.code.to_i.eql?(500)
-        raise Intercom::ServerError.new('Server Error')
-      elsif res.code.to_i.eql?(502)
-        raise Intercom::BadGatewayError.new('Bad Gateway Error')
-      elsif res.code.to_i.eql?(503)
-        raise Intercom::ServiceUnavailableError.new('Service Unavailable')
+      case res.code.to_i
+      when 404
+        raise Intercom::ResourceNotFound, 'Resource Not Found'
+      when 401
+        raise Intercom::AuthenticationError, 'Unauthorized'
+      when 403
+        raise Intercom::AuthenticationError, 'Forbidden'
+      when 500
+        raise Intercom::ServerError, 'Server Error'
+      when 502
+        raise Intercom::BadGatewayError, 'Bad Gateway Error'
+      when 503
+        raise Intercom::ServiceUnavailableError, 'Service Unavailable'
       end
     end
 
     def raise_application_errors_on_failure(error_list_details, http_code)
       # Currently, we don't support multiple errors
-      error_details = error_list_details['errors'].first
-      error_code = error_details['type'] || error_details['code']
+      error_details    = error_list_details['errors'].first
+      error_code       = error_details['type'] || error_details['code']
       parsed_http_code = (http_code > 0 ? http_code : nil)
-      request_id = error_list_details['request_id']
-      error_context = {
-        :http_code => parsed_http_code,
-        :application_error_code => error_code,
-        :request_id => request_id
+      request_id       = error_list_details['request_id']
+      error_context    = {
+        http_code:              parsed_http_code,
+        application_error_code: error_code,
+        request_id:             request_id
       }
       case error_code
       when 'unauthorized', 'forbidden'
@@ -153,10 +159,12 @@ module Intercom
         raise Intercom::MultipleMatchingUsersError.new(error_details['message'], error_context)
       when 'scroll_exists'
         raise Intercom::ScrollExistsError.new(error_details['message'], error_context)
+      when 'server_error'
+        raise Intercom::ServerError.new(error_details['message'], error_context)
       when nil, ''
-        raise Intercom::UnexpectedError.new(message_for_unexpected_error_without_type(error_details, parsed_http_code, request_id), error_context)
+        raise Intercom::UnexpectedError.new(error_details['message'], error_context)
       else
-        raise Intercom::UnexpectedError.new(message_for_unexpected_error_with_type(error_details, parsed_http_code, request_id), error_context)
+        raise Intercom::UnexpectedError.new(error_details['message'], error_context)
       end
     end
 

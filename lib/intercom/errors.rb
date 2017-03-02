@@ -2,11 +2,20 @@ module Intercom
 
   # Base class exception from which all public Intercom exceptions will be derived
   class IntercomError < StandardError
-    attr_reader :http_code, :application_error_code
-    def initialize(message, http_code = nil, error_code = application_error_code)
-      @http_code = http_code
-      @application_error_code = error_code
-      super(message)
+    attr_reader :http_code, :application_error_code, :request_id
+
+    def initialize(message, context = {})
+      @message                = message
+      @http_code              = context[:http_code]
+      @application_error_code = context[:error_code]
+      @request_id             = context[:request_id]
+      super(formatted_message)
+    end
+
+    private
+
+    def formatted_message
+      "Message => '#{@message}', HTTP Code => #{@http_code}, Error Code => #{@application_error_code}, Request => #{@request_id}"
     end
   end
 
@@ -45,10 +54,10 @@ module Intercom
   class ScrollExistsError < IntercomError; end
 
   # Raised when you try to call a non-setter method that does not exist on an object
-  class Intercom::AttributeNotSetError < IntercomError ; end
+  class AttributeNotSetError < IntercomError; end
 
   # Raised when unexpected nil returned from server
-  class Intercom::HttpError < IntercomError ; end
+  class HttpError < IntercomError; end
 
   #
   # Non-public errors (internal to the gem)
@@ -58,7 +67,7 @@ module Intercom
   class IntercomInternalError < StandardError; end
 
   # Raised when we attempt to handle a method missing but are unsuccessful
-  class Intercom::NoMethodMissingHandler < IntercomInternalError; end
+  class NoMethodMissingHandler < IntercomInternalError; end
 
-  class Intercom::DeserializationError < IntercomInternalError; end
+  class DeserializationError < IntercomInternalError; end
 end
