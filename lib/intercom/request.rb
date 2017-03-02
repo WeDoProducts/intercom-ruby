@@ -71,11 +71,7 @@ module Intercom
             raise_errors_on_failure(response)
             parsed_body
           rescue Intercom::RateLimitExceeded
-            amount_to_sleep = if @rate_limit_details[:reset_at].present?
-                                @rate_limit_details[:reset_at] - Time.now
-                              else
-                                10 - Time.now.sec
-                              end
+            amount_to_sleep = 11 - Time.now.sec
             sleep(amount_to_sleep)
             retry
           rescue Timeout::Error

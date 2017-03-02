@@ -2,10 +2,10 @@ module Intercom
 
   # Base class exception from which all public Intercom exceptions will be derived
   class IntercomError < StandardError
-    attr_reader :http_code, :application_error_code, :request_id
+    attr_reader :http_code, :application_error_code, :request_id, :original_message
 
     def initialize(message, context = {})
-      @message                = message
+      @original_message       = message
       @http_code              = context[:http_code]
       @application_error_code = context[:application_error_code]
       @request_id             = context[:request_id]
@@ -15,7 +15,7 @@ module Intercom
     private
 
     def formatted_message
-      "Message => '#{@message}', HTTP Code => #{@http_code}, Error Code => #{@application_error_code}, Request => #{@request_id}"
+      "Message => '#{@original_message}', HTTP Code => #{@http_code}, Error Code => #{@application_error_code}, Request => #{@request_id}"
     end
   end
 
