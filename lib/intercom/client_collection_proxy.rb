@@ -50,10 +50,12 @@ module Intercom
       top_level_type = response_hash.delete('type')
       if resource_name == 'subscriptions'
         top_level_entity_key = 'items'
+      elsif resource_name == 'counts'
+        top_level_entity_key = [@finder_params[:type].to_s, @finder_params[:count].to_s]
       else
         top_level_entity_key = Utils.entity_key_from_type(top_level_type)
       end
-      response_hash[top_level_entity_key].each do |object_json|
+      response_hash.dig(*top_level_entity_key).each do |object_json|
         block.call Lib::TypedJsonDeserializer.new(object_json).deserialize
       end
     end
@@ -65,7 +67,8 @@ module Intercom
     def extract_next_link(response_hash)
       return nil unless paging_info_present?(response_hash)
       paging_info = response_hash.delete('pages')
-      paging_info["next"]
+      paging_info = paging_info.delete('pages') if paging_info.key?('pages')
+      paging_info['next']
     end
   end
 end

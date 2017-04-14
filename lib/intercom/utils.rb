@@ -54,7 +54,7 @@ module Intercom
       def entity_key_from_type(type)
         is_list = type.split('.')[1] == 'list'
         entity_name = type.split('.')[0]
-        is_list ?  Utils.pluralize(entity_name) : entity_name
+        is_list ? Utils.pluralize(entity_name) : entity_name
       end
     end
   end

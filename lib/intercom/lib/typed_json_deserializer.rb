@@ -12,7 +12,7 @@ module Intercom
 
         def deserialize
           if blank_object_type?(object_type)
-            raise DeserializationError, "No type field was found to facilitate deserialization"
+            json
           elsif list_object_type?(object_type)
             deserialize_collection(json[object_entity_key])
           else # singular object type
