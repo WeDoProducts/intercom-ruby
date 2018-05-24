@@ -18,7 +18,18 @@ module Intercom
       @next_page = nil
       loop do
         if @next_page
+          begin
           response_hash = @client.get(@next_page, {})
+          rescue Intercom::ServerError => e
+            uri = URI.parse(@next_page)
+            parsed_query = CGI.parse(uri.query)
+            page = parsed_query["page"].first.to_i
+            page += 1
+            parsed_query["page"][0] = page.to_s
+            uri.query = URI.encode_www_form(parsed_query)
+            @next_page = uri.to_s
+            retry
+          end
         else
           response_hash = @client.get(@finder_url, @finder_params)
         end
