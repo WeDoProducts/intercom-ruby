@@ -10,17 +10,18 @@ module Intercom
         begin
           response_hash = @client.get(@finder_url, @finder_params)
           unless response_hash
-            if @finder_params[:scroll_param]
-              puts "Caught HTTP error"
-            else
-              raise Intercom::HttpError.new('Http Error - No response entity returned')
-            end
+            raise Intercom::HttpError.new('Http Error - No response entity returned')
           end
           break unless deserialize_response_hash(response_hash, block)
           @finder_params[:scroll_param] ||= extract_next_link(response_hash)
         rescue Intercom::ServerError => e
           puts "Caught server error"
           retry
+        rescue Intercom::HttpError => e
+          if @finder_params[:scroll_param]
+            puts "Caught HTTP error"
+            retry
+          end
         end
       end
       self
